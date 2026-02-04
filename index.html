@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>قرعة الأواعي</title>
+
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: Arial; padding: 18px; max-width: 520px; margin: 0 auto; }
+    h1 { margin: 10px 0 14px; }
+    textarea { width: 100%; height: 160px; font-size: 16px; padding: 10px; }
+    button { font-size: 18px; padding: 12px 14px; margin-top: 10px; width: 100%; }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; margin-top: 14px; }
+    .muted { opacity: 0.7; font-size: 14px; }
+    .big { font-size: 26px; margin: 8px 0; }
+    .row { display: flex; gap: 10px; }
+    .row button { width: 50%; }
+    .wheel {
+      width: 240px; height: 240px; border-radius: 50%;
+      border: 10px solid #d4af37;
+      display: grid; place-items: center;
+      margin: 14px auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .wheel::after{
+      content:"";
+      position:absolute;
+      top:-2px; left:50%;
+      transform: translateX(-50%);
+      width:0; height:0;
+      border-left:10px solid transparent;
+      border-right:10px solid transparent;
+      border-bottom:18px solid #1b1b1b;
+    }
+    .spinText { font-size: 22px; text-align:center; padding: 0 14px; }
+  </style>
+</head>
+<body>
+  <h1>قرعة الأواعي 🎡</h1>
+  <div class="muted">حط كل قطعة سطر لحالها. أنت فيك تعدّل القائمة بأي وقت.</div>
+
+  <div class="card">
+    <div class="muted">قائمة الأواعي</div>
+    <textarea id="items">لانجري احمر قطعتين
+لانجري نهدي قطعتين
+لانجري اسود شبك
+لانجري ازرق قطعتين
+لانجري كحلي قطعتين
+بلاولاشييي
+الانجري ابيض خرز
+لانجري زهر فاتح قطعتين
+لانجري تبع الرقص
+لانجري اسود عادي
+لانجري نهدي
+زيتي قطعتين
+لانجري مورد عليه ورد
+لانجري</textarea>
+
+    <div class="row">
+      <button id="save">حفظ القائمة</button>
+      <button id="reset">تصفير كل شي</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted">الدوّارة</div>
+    <div class="wheel"><div class="spinText" id="spinText">جاهز؟</div></div>
+    <button id="spin">دوّر 🎲</button>
+    <div class="muted" id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="muted">المتبقّي</div>
+    <div id="remaining" class="big">0</div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

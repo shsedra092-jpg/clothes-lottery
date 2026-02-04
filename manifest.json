@@ -1,0 +1,8 @@
+{
+  "name": "انت وحظك ياجميل",
+  "short_name": "انت وحظك",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#D4AF37",
+  "theme_color": "#D4AF37"
+}

@@ -1,5 +1,13 @@
-const CACHE_NAME = "clothes-lottery-v1";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./app.js"];
+const CACHE_NAME = "clothes-lottery-v3";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./app.js",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./apple-touch-icon-v2.png"
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

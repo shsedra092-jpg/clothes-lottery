@@ -15,6 +15,7 @@ const statusEl = document.getElementById("status");
 const remainingEl = document.getElementById("remaining");
 
 function todayKey() {
+  // YYYY-MM-DD حسب توقيت الجهاز
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -131,6 +132,12 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(console.error);
   });
+}
+
+// ✅ أول مرة: إذا ما في قائمة محفوظة، خذ اللي داخل الـ textarea واحفظه
+if (!localStorage.getItem(K_ITEMS)) {
+  const initial = normalizeLines(itemsEl.value);
+  saveItems(initial);
 }
 
 render();

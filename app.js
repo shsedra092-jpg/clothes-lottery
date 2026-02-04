@@ -14,8 +14,72 @@ const spinText = document.getElementById("spinText");
 const statusEl = document.getElementById("status");
 const remainingEl = document.getElementById("remaining");
 
+// ====== صوت (Web Audio) ======
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTick() {
+  const ctx = getAudioCtx();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+
+  o.type = "square";
+  o.frequency.value = 900; // تردد “تك”
+  g.gain.value = 0.03;     // مستوى الصوت (خفيف)
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  const now = ctx.currentTime;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.03, now + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+  o.start(now);
+  o.stop(now + 0.05);
+}
+
+function playYay() {
+  const ctx = getAudioCtx();
+
+  // نغمة “heeeey” بسيطة (سلايد تردد)
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+
+  o.type = "sine";
+  g.gain.value = 0.05;
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  const now = ctx.currentTime;
+
+  // سلايد من منخفض إلى عالي
+  o.frequency.setValueAtTime(250, now);
+  o.frequency.exponentialRampToValueAtTime(700, now + 0.35);
+
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+  o.start(now);
+  o.stop(now + 0.5);
+}
+
+// مهم على iOS: لازم نفعّل الصوت بأول تفاعل
+spinBtn.addEventListener("click", async () => {
+  const ctx = getAudioCtx();
+  if (ctx.state === "suspended") {
+    try { await ctx.resume(); } catch {}
+  }
+}, { once: true });
+
+// ====== منطق التطبيق ======
 function todayKey() {
-  // YYYY-MM-DD حسب توقيت الجهاز
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -46,7 +110,6 @@ function render() {
   const list = loadItems();
   remainingEl.textContent = String(list.length);
 
-  // عرض القائمة
   itemsEl.value = list.join("\n");
 
   const lastDate = localStorage.getItem(K_LAST_DATE);
@@ -75,7 +138,6 @@ saveBtn.addEventListener("click", () => {
   const list = normalizeLines(itemsEl.value);
   saveItems(list);
 
-  // السماح بقرعة جديدة بعد تغيير القائمة
   localStorage.removeItem(K_LAST_DATE);
   localStorage.removeItem(K_LAST_PICK);
 
@@ -107,7 +169,12 @@ spinBtn.addEventListener("click", () => {
   const rounds = 18;
 
   const timer = setInterval(() => {
+    // تغيير النص أثناء الدوران
     spinText.textContent = pickRandom(list).item;
+
+    // ✅ صوت تك مع كل خطوة
+    playTick();
+
     step++;
     if (step >= rounds) {
       clearInterval(timer);
@@ -115,7 +182,10 @@ spinBtn.addEventListener("click", () => {
       const { item, index } = pickRandom(list);
       spinText.textContent = item;
 
-      // حذف القطعة المختارة من القرعة للأيام القادمة
+      // ✅ صوت النتيجة
+      playYay();
+
+      // حذف القطعة المختارة
       list.splice(index, 1);
       saveItems(list);
 
@@ -134,7 +204,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// ✅ أول مرة: إذا ما في قائمة محفوظة، خذ اللي داخل الـ textarea واحفظه
+// أول مرة: إذا ما في قائمة محفوظة، خذ اللي داخل الـ textarea واحفظه
 if (!localStorage.getItem(K_ITEMS)) {
   const initial = normalizeLines(itemsEl.value);
   saveItems(initial);

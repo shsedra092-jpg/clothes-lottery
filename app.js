@@ -22,21 +22,28 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+async function unlockAudioNow() {
+  const ctx = getAudioCtx();
+  if (ctx.state === "suspended") {
+    try { await ctx.resume(); } catch {}
+  }
+  // “نقرة” صغيرة فورًا داخل نفس ضغطة الزر (ضرورية على iOS)
+  playTick();
+}
+
 function playTick() {
   const ctx = getAudioCtx();
   const o = ctx.createOscillator();
   const g = ctx.createGain();
 
   o.type = "square";
-  o.frequency.value = 900; // تردد “تك”
-  g.gain.value = 0.03;     // مستوى الصوت (خفيف)
-
+  o.frequency.value = 900;
   o.connect(g);
   g.connect(ctx.destination);
 
   const now = ctx.currentTime;
   g.gain.setValueAtTime(0.0001, now);
-  g.gain.exponentialRampToValueAtTime(0.03, now + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.12, now + 0.005); // أعلى شوي
   g.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
 
   o.start(now);
@@ -45,38 +52,25 @@ function playTick() {
 
 function playYay() {
   const ctx = getAudioCtx();
-
-  // نغمة “heeeey” بسيطة (سلايد تردد)
   const o = ctx.createOscillator();
   const g = ctx.createGain();
 
   o.type = "sine";
-  g.gain.value = 0.05;
-
   o.connect(g);
   g.connect(ctx.destination);
 
   const now = ctx.currentTime;
 
-  // سلايد من منخفض إلى عالي
-  o.frequency.setValueAtTime(250, now);
-  o.frequency.exponentialRampToValueAtTime(700, now + 0.35);
+  o.frequency.setValueAtTime(260, now);
+  o.frequency.exponentialRampToValueAtTime(750, now + 0.35);
 
   g.gain.setValueAtTime(0.0001, now);
-  g.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.14, now + 0.02); // أعلى شوي
   g.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
 
   o.start(now);
   o.stop(now + 0.5);
 }
-
-// مهم على iOS: لازم نفعّل الصوت بأول تفاعل
-spinBtn.addEventListener("click", async () => {
-  const ctx = getAudioCtx();
-  if (ctx.state === "suspended") {
-    try { await ctx.resume(); } catch {}
-  }
-}, { once: true });
 
 // ====== منطق التطبيق ======
 function todayKey() {
@@ -156,12 +150,16 @@ function pickRandom(list) {
   return { item: list[i], index: i };
 }
 
-spinBtn.addEventListener("click", () => {
+// ✅ خلي click async عشان نعمل unlock للصوت بنفس الضغطة
+spinBtn.addEventListener("click", async () => {
   const list = loadItems();
   if (list.length === 0) return render();
 
   const t = todayKey();
   if (localStorage.getItem(K_LAST_DATE) === t) return render();
+
+  // ✅ فتح الصوت فورًا داخل نفس الضغطة (مهم للآيفون)
+  await unlockAudioNow();
 
   spinBtn.disabled = true;
 
@@ -169,10 +167,9 @@ spinBtn.addEventListener("click", () => {
   const rounds = 18;
 
   const timer = setInterval(() => {
-    // تغيير النص أثناء الدوران
     spinText.textContent = pickRandom(list).item;
 
-    // ✅ صوت تك مع كل خطوة
+    // ✅ صوت “تك” مع كل حركة
     playTick();
 
     step++;
@@ -185,7 +182,6 @@ spinBtn.addEventListener("click", () => {
       // ✅ صوت النتيجة
       playYay();
 
-      // حذف القطعة المختارة
       list.splice(index, 1);
       saveItems(list);
 
